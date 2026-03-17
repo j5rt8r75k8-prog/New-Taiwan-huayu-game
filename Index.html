@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>台灣華語・落下リンク</title>
+  <style>
+    :root {
+      --bg: #fdf6e3;
+      --card: #ffffff;
+      --accent: #5fa8d3;
+      --accent-dark: #3d7ea6;
+      --danger: #d64545;
+      --good: #2c9c5d;
+      --text: #333;
+      --shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      background: linear-gradient(180deg, #fff9e8 0%, #fdf0d5 100%);
+      color: var(--text);
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .panel {
+      width: min(92vw, 700px);
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 28px 22px;
+      text-align: center;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    .title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin-bottom: 10px;
+      color: var(--accent-dark);
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      color: #555;
+    }
+
+    .menu-buttons,
+    .result-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 5px 0 var(--accent-dark);
+      transition: transform 0.08s ease;
+    }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 var(--accent-dark);
+    }
+
+    button.secondary {
+      background: #8d99ae;
+      box-shadow: 0 5px 0 #667085;
+    }
+
+    button.danger {
+      background: var(--danger);
+      box-shadow: 0 5px 0 #a52828;
+    }
+
+    #game-screen {
+      flex-direction: column;
+      justify-content: stretch;
+      padding: 0;
+    }
+
+    #hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      font-weight: bold;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      z-index: 20;
+    }
+
+    .hud-item {
+      background: white;
+      border-radius: 14px;
+      padding: 8px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      min-width: 90px;
+      text-align: center;
+    }
+
+    #play-area {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .falling-item {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 4.2rem;
+      line-height: 1;
+      user-select: none;
+      z-index: 5;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+      text-shadow: 0 6px 10px rgba(0,0,0,0.12);
+    }
+
+    #feedback {
+      position: absolute;
+      top: 22%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      font-weight: 900;
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 30;
+      pointer-events: none;
+      text-align: center;
+      white-space: pre-line;
+    }
+
+    #feedback.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-10px);
+    }
+
+    #choices {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      padding: 14px 12px 22px;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.08);
+      z-index: 20;
+    }
+
+    .choice-btn {
+      flex: 1;
+      max-width: 220px;
+      min-height: 74px;
+      border-radius: 18px;
+      border: 3px solid #d9e7f1;
+      background: #fff;
+      color: #234;
+      font-size: clamp(1.2rem, 3vw, 1.7rem);
+      font-weight: 800;
+      box-shadow: 0 5px 0 #d9e7f1;
+    }
+
+    .choice-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #d9e7f1;
+    }
+
+    .small-note {
+      font-size: 0.95rem;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+
+    #ranking-list {
+      margin: 18px auto 0;
+      max-width: 420px;
+      text-align: left;
+      background: #fff;
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: inset 0 0 0 1px #eee;
+    }
+
+    .rank-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 8px;
+      border-bottom: 1px solid #eee;
+      font-weight: 700;
+    }
+
+    .rank-row:last-child {
+      border-bottom: none;
+    }
+
+    .rank-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 60%;
+    }
+
+    input[type="text"] {
+      width: min(80%, 300px);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 2px solid #d9e7f1;
+      font-size: 1rem;
+      margin-top: 10px;
+      outline: none;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #fff4bf;
+      color: #8a6700;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 640px) {
+      #choices {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .choice-btn {
+        width: 100%;
+        max-width: none;
+      }
+
+      .hud-item {
+        min-width: auto;
+        font-size: 0.95rem;
+      }
+
+      .falling-item {
+        font-size: 3.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <!-- メインメニュー -->
+    <section id="menu-screen" class="screen active">
+      <div class="panel">
+        <div class="badge">台灣華語・初級向け</div>
+        <h1 class="title">落下リンク</h1>
+        <p class="subtitle">
+          上から落ちてくる意味アイコンに合う漢字を、下の3択からすばやく選ぼう。<br>
+          正解で +10 点、不正解で -5 点 &amp; -10 秒。<br>
+          制限時間は 60 秒。正解するほど落下スピードも上がる。
+        </p>
+        <div class="menu-buttons">
+          <button id="start-btn">開始遊戲</button>
+          <button id="show-ranking-btn" class="secondary">排行榜</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ゲーム画面 -->
+    <section id="game-screen" class="screen">
+      <div id="hud">
+        <div class="hud-item">分數<br><span id="score">0</span></div>
+        <div class="hud-item">時間<br><span id="time">60</span>s</div>
+        <div class="hud-item">速度<br><span id="speed">1.0</span>x</div>
+      </div>
+
+      <div id="play-area">
+        <div id="feedback"></div>
+      </div>
+
+      <div id="choices"></div>
+    </section>
+
+    <!-- 結果画面 -->
+    <section id="result-screen" class="screen">
+      <div class="panel">
+        <h2>遊戲結束</h2>
+        <h3>你的分數：<span id="final-score">0</span></h3>
+        <p class="small-note">名前を登録するとランキングに保存されます。</p>
+
+        <input type="text" id="player-name" maxlength="12" placeholder="請輸入名字" />
+        <div class="result-buttons">
+          <button id="save-score-btn">保存分數</button>
+          <button id="retry-btn">再玩一次</button>
+          <button id="back-menu-btn" class="secondary">主選單</button>
+        </div>
+
+        <div id="ranking-list"></div>
+      </div>
+    </section>
+
+    <!-- ランキング画面 -->
+    <section id="ranking-screen" class="screen">
+      <div class="panel">
+        <h2>排行榜</h2>
+        <div id="ranking-only-list"></div>
+        <div class="result-buttons">
+          <button id="ranking-back-btn" class="secondary">回主選單</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const WORDS = [
+      { emoji: "🍎", word: "蘋果" },
+      { emoji: "🍌", word: "香蕉" },
+      { emoji: "🍉", word: "西瓜" },
+      { emoji: "🍇", word: "葡萄" },
+      { emoji: "🥤", word: "飲料" },
+      { emoji: "🍚", word: "白飯" },
+      { emoji: "🐱", word: "貓" },
+      { emoji: "🐶", word: "狗" },
+      { emoji: "🚗", word: "汽車" },
+      { emoji: "🛵", word: "機車" },
+      { emoji: "☀️", word: "太陽" },
+      { emoji: "🌧️", word: "下雨" }
+    ];
+
+    const SCREENS = {
+      menu: document.getElementById("menu-screen"),
+      game: document.getElementById("game-screen"),
+      result: document.getElementById("result-screen"),
+      ranking: document.getElementById("ranking-screen")
+    };
+
+    const playArea = document.getElementById("play-area");
+    const choicesEl = document.getElementById("choices");
+    const feedbackEl = document.getElementById("feedback");
+
+    const scoreEl = document.getElementById("score");
+    const timeEl = document.getElementById("time");
+    const speedEl = document.getElementById("speed");
+    const finalScoreEl = document.getElementById("final-score");
+
+    const playerNameInput = document.getElementById("player-name");
+    const rankingListEl = document.getElementById("ranking-list");
+    const rankingOnlyListEl = document.getElementById("ranking-only-list");
+
+    let gameState = {
+      score: 0,
+      timeLeft: 60,
+      speed: 1.0,
+      playing: false,
+      currentItem: null,
+      animationId: null,
+      countdownId: null,
+      currentY: -100,
+      startTime: null
+    };
+
+    function switchScreen(name) {
+      Object.values(SCREENS).forEach(s => s.classList.remove("active"));
+      SCREENS[name].classList.add("active");
+    }
+
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function showFeedback(text, type = "good") {
+      feedbackEl.textContent = text;
+      feedbackEl.style.color = type === "good" ? "var(--good)" : "var(--danger)";
+      feedbackEl.classList.add("show");
+      setTimeout(() => {
+        feedbackEl.classList.remove("show");
+      }, 500);
+    }
+
+    function updateHUD() {
+      scoreEl.textContent = gameState.score;
+      timeEl.textContent = Math.max(0, gameState.timeLeft);
+      speedEl.textContent = gameState.speed.toFixed(1);
+    }
+
+    function resetGame() {
+      if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
+      if (gameState.countdownId) clearInterval(gameState.countdownId);
+
+      gameState = {
+        score: 0,
+        timeLeft: 60,
+        speed: 1.0,
+        playing: true,
+        currentItem: null,
+        animationId: null,
+        countdownId: null,
+        currentY: -100,
+        startTime: null
+      };
+
+      playArea.innerHTML = '<div id="feedback"></div>';
+      window.feedbackEl = document.getElementById("feedback");
+      updateHUD();
+    }
+
+    function pickChoices(correctItem) {
+      const others = WORDS.filter(w => w.word !== correctItem.word);
+      const randomOthers = shuffle(others).slice(0, 2);
+      return shuffle([correctItem, ...randomOthers]);
+    }
+
+    function renderChoices(correctItem) {
+      choicesEl.innerHTML = "";
+      const choices = pickChoices(correctItem);
+
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = choice.word;
+        btn.onclick = () => handleChoice(choice);
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    function speakWord(text) {
+      try {
+        const uttr = new SpeechSynthesisUtterance(text);
+        uttr.lang = "zh-TW";
+        speechSynthesis.cancel();
+        speechSynthesis.speak(uttr);
+      } catch (e) {}
+    }
+
+    function spawnItem() {
+      if (!gameState.playing) return;
+
+      const item = WORDS[Math.floor(Math.random() * WORDS.length)];
+      gameState.currentItem = item;
+      gameState.currentY = -100;
+
+      const el = document.createElement("div");
+      el.className = "falling-item";
+      el.textContent = item.emoji;
+      el.style.left = (Math.random() * (window.innerWidth - 120) + 60) + "px";
+      playArea.appendChild(el);
+
+      item.element = el;
+      renderChoices(item);
+
+      let lastTimestamp = null;
+
+      function animate(timestamp) {
+        if (!gameState.playing) return;
+        if (!lastTimestamp) lastTimestamp = timestamp;
+
+        const delta = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+
+        const pxPerSecond = 90 * gameState.speed;
+        gameState.currentY += (pxPerSecond * delta) / 1000;
+        el.style.top = gameState.currentY + "px";
+
+        const bottomLimit = playArea.clientHeight - 120;
+
+        if (gameState.currentY >= bottomLimit) {
+          endGame();
+          return;
+        }
+
+        gameState.animationId = requestAnimationFrame(animate);
+      }
+
+      gameState.animationId = requestAnimationFrame(animate);
+    }
+
+    function clearCurrentItem() {
+      if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
+      if (gameState.currentItem && gameState.currentItem.element) {
+        gameState.currentItem.element.remove();
+      }
+      gameState.currentItem = null;
+      gameState.animationId = null;
+    }
+
+    function handleChoice(selected) {
+      if (!gameState.playing || !gameState.currentItem) return;
+
+      if (selected.word === gameState.currentItem.word) {
+        gameState.score += 10;
+        gameState.speed += 0.15;
+        updateHUD();
+        showFeedback("✅ +10", "good");
+        speakWord(gameState.currentItem.word);
+        clearCurrentItem();
+        spawnItem();
+      } else {
+        gameState.score = Math.max(0, gameState.score - 5);
+        gameState.timeLeft = Math.max(0, gameState.timeLeft - 10);
+        updateHUD();
+        showFeedback("❌ -5分\n-10秒", "bad");
+        if (gameState.timeLeft <= 0) {
+          endGame();
+        }
+      }
+    }
+
+    function startCountdown() {
+      gameState.countdownId = setInterval(() => {
+        if (!gameState.playing) return;
+        gameState.timeLeft--;
+        updateHUD();
+
+        if (gameState.timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      switchScreen("game");
+      resetGame();
+      startCountdown();
+      spawnItem();
+    }
+
+    function endGame() {
+      gameState.playing = false;
+      clearInterval(gameState.countdownId);
+      if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
+
+      finalScoreEl.textContent = gameState.score;
+      playerNameInput.value = "";
+      renderRanking(rankingListEl);
+      switchScreen("result");
+    }
+
+    function getRanking() {
+      try {
+        return JSON.parse(localStorage.getItem("tw_falling_link_ranking")) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRanking(name, score) {
+      const ranking = getRanking();
+      ranking.push({
+        name: name || "玩家",
+        score,
+        date: new Date().toLocaleDateString("zh-TW")
+      });
+
+      ranking.sort((a, b) => b.score - a.score);
+      const trimmed = ranking.slice(0, 10);
+      localStorage.setItem("tw_falling_link_ranking", JSON.stringify(trimmed));
+    }
+
+    function renderRanking(targetEl) {
+      const ranking = getRanking();
+
+      if (!ranking.length) {
+        targetEl.innerHTML = `<p class="small-note">還沒有紀錄，快來挑戰第一名！</p>`;
+        return;
+      }
+
+      targetEl.innerHTML = ranking.map((r, i) => `
+        <div class="rank-row">
+          <span class="rank-name">${i + 1}. ${escapeHtml(r.name)}</span>
+          <span>${r.score} 分</span>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[m]));
+    }
+
+    document.getElementById("start-btn").addEventListener("click", startGame);
+
+    document.getElementById("retry-btn").addEventListener("click", startGame);
+
+    document.getElementById("back-menu-btn").addEventListener("click", () => {
+      switchScreen("menu");
+    });
+
+    document.getElementById("show-ranking-btn").addEventListener("click", () => {
+      renderRanking(rankingOnlyListEl);
+      switchScreen("ranking");
+    });
+
+    document.getElementById("ranking-back-btn").addEventListener("click", () => {
+      switchScreen("menu");
+    });
+
+    document.getElementById("save-score-btn").addEventListener("click", () => {
+      const name = playerNameInput.value.trim() || "玩家";
+      saveRanking(name, gameState.score);
+      renderRanking(rankingListEl);
+      playerNameInput.value = "";
+      showFeedbackOnResult("已保存到排行榜");
+    });
+
+    function showFeedbackOnResult(text) {
+      const note = document.createElement("div");
+      note.textContent = text;
+      note.style.marginTop = "12px";
+      note.style.fontWeight = "800";
+      note.style.color = "var(--good)";
+      rankingListEl.parentNode.insertBefore(note, rankingListEl);
+      setTimeout(() => note.remove(), 1200);
+    }
+
+    renderRanking(rankingOnlyListEl);
+  </script>
+</body>
+</html>
