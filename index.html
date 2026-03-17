@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>台灣華語・落下リンク</title>
+  <title>落下連連看</title>
   <style>
     :root {
       --bg: #fdf6e3;
@@ -67,7 +67,7 @@
 
     .subtitle {
       font-size: 1rem;
-      line-height: 1.7;
+      line-height: 1.8;
       margin-bottom: 24px;
       color: #555;
     }
@@ -102,11 +102,6 @@
     button.secondary {
       background: #8d99ae;
       box-shadow: 0 5px 0 #667085;
-    }
-
-    button.danger {
-      background: var(--danger);
-      box-shadow: 0 5px 0 #a52828;
     }
 
     #game-screen {
@@ -178,33 +173,53 @@
       transform: translateX(-50%) translateY(-10px);
     }
 
+    /* 選項區往上移 */
     #choices {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 100px;
       width: 100%;
       display: flex;
       gap: 10px;
       justify-content: center;
-      padding: 14px 12px 22px;
-      background: rgba(255,255,255,0.92);
-      box-shadow: 0 -6px 18px rgba(0,0,0,0.08);
-      z-index: 20;
+      padding: 0 12px;
+      z-index: 25;
     }
 
     .choice-btn {
       flex: 1;
-      max-width: 220px;
-      min-height: 74px;
+      max-width: 240px;
+      min-height: 96px;
       border-radius: 18px;
       border: 3px solid #d9e7f1;
       background: #fff;
       color: #234;
-      font-size: clamp(1.2rem, 3vw, 1.7rem);
-      font-weight: 800;
       box-shadow: 0 5px 0 #d9e7f1;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
     }
 
     .choice-btn:active {
       transform: translateY(4px);
       box-shadow: 0 1px 0 #d9e7f1;
+    }
+
+    .choice-word {
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .choice-pinyin {
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      color: #5b6b7a;
+      font-weight: 700;
+      line-height: 1.2;
     }
 
     .small-note {
@@ -214,7 +229,8 @@
       line-height: 1.6;
     }
 
-    #ranking-list {
+    #ranking-list,
+    #ranking-only-list {
       margin: 18px auto 0;
       max-width: 420px;
       text-align: left;
@@ -268,6 +284,7 @@
       #choices {
         flex-direction: column;
         align-items: center;
+        bottom: 90px;
       }
 
       .choice-btn {
@@ -289,15 +306,14 @@
 <body>
   <div id="app">
 
-    <!-- メインメニュー -->
     <section id="menu-screen" class="screen active">
       <div class="panel">
-        <div class="badge">台灣華語・初級向け</div>
-        <h1 class="title">落下リンク</h1>
+        <div class="badge">台灣華語 初級</div>
+        <h1 class="title">落下連連看</h1>
         <p class="subtitle">
-          上から落ちてくる意味アイコンに合う漢字を、下の3択からすばやく選ぼう。<br>
-          正解で +10 点、不正解で -5 点 &amp; -10 秒。<br>
-          制限時間は 60 秒。正解するほど落下スピードも上がる。
+          上方會掉下圖示，請快速選出正確的詞語。<br>
+          答對加 10 分，答錯扣 5 分並減少 10 秒。<br>
+          時間共 60 秒，答對越多，速度越快。
         </p>
         <div class="menu-buttons">
           <button id="start-btn">開始遊戲</button>
@@ -306,7 +322,6 @@
       </div>
     </section>
 
-    <!-- ゲーム画面 -->
     <section id="game-screen" class="screen">
       <div id="hud">
         <div class="hud-item">分數<br><span id="score">0</span></div>
@@ -316,36 +331,33 @@
 
       <div id="play-area">
         <div id="feedback"></div>
+        <div id="choices"></div>
       </div>
-
-      <div id="choices"></div>
     </section>
 
-    <!-- 結果画面 -->
     <section id="result-screen" class="screen">
       <div class="panel">
         <h2>遊戲結束</h2>
-        <h3>你的分數：<span id="final-score">0</span></h3>
-        <p class="small-note">名前を登録するとランキングに保存されます。</p>
+        <h3>本次分數：<span id="final-score">0</span></h3>
+        <p class="small-note">輸入名字後即可儲存到排行榜。</p>
 
         <input type="text" id="player-name" maxlength="12" placeholder="請輸入名字" />
         <div class="result-buttons">
-          <button id="save-score-btn">保存分數</button>
+          <button id="save-score-btn">儲存分數</button>
           <button id="retry-btn">再玩一次</button>
-          <button id="back-menu-btn" class="secondary">主選單</button>
+          <button id="back-menu-btn" class="secondary">回到主選單</button>
         </div>
 
         <div id="ranking-list"></div>
       </div>
     </section>
 
-    <!-- ランキング画面 -->
     <section id="ranking-screen" class="screen">
       <div class="panel">
         <h2>排行榜</h2>
         <div id="ranking-only-list"></div>
         <div class="result-buttons">
-          <button id="ranking-back-btn" class="secondary">回主選單</button>
+          <button id="ranking-back-btn" class="secondary">回到主選單</button>
         </div>
       </div>
     </section>
@@ -354,18 +366,18 @@
 
   <script>
     const WORDS = [
-      { emoji: "🍎", word: "蘋果" },
-      { emoji: "🍌", word: "香蕉" },
-      { emoji: "🍉", word: "西瓜" },
-      { emoji: "🍇", word: "葡萄" },
-      { emoji: "🥤", word: "飲料" },
-      { emoji: "🍚", word: "白飯" },
-      { emoji: "🐱", word: "貓" },
-      { emoji: "🐶", word: "狗" },
-      { emoji: "🚗", word: "汽車" },
-      { emoji: "🛵", word: "機車" },
-      { emoji: "☀️", word: "太陽" },
-      { emoji: "🌧️", word: "下雨" }
+      { emoji: "🍎", word: "蘋果", pinyin: "píng guǒ" },
+      { emoji: "🍌", word: "香蕉", pinyin: "xiāng jiāo" },
+      { emoji: "🍉", word: "西瓜", pinyin: "xī guā" },
+      { emoji: "🍇", word: "葡萄", pinyin: "pú táo" },
+      { emoji: "🥤", word: "飲料", pinyin: "yǐn liào" },
+      { emoji: "🍚", word: "白飯", pinyin: "bái fàn" },
+      { emoji: "🐱", word: "貓", pinyin: "māo" },
+      { emoji: "🐶", word: "狗", pinyin: "gǒu" },
+      { emoji: "🚗", word: "汽車", pinyin: "qì chē" },
+      { emoji: "🛵", word: "機車", pinyin: "jī chē" },
+      { emoji: "☀️", word: "太陽", pinyin: "tài yáng" },
+      { emoji: "🌧️", word: "下雨", pinyin: "xià yǔ" }
     ];
 
     const SCREENS = {
@@ -377,7 +389,8 @@
 
     const playArea = document.getElementById("play-area");
     const choicesEl = document.getElementById("choices");
-    const feedbackEl = document.getElementById("feedback");
+
+    let feedbackEl = document.getElementById("feedback");
 
     const scoreEl = document.getElementById("score");
     const timeEl = document.getElementById("time");
@@ -396,8 +409,7 @@
       currentItem: null,
       animationId: null,
       countdownId: null,
-      currentY: -100,
-      startTime: null
+      currentY: -100
     };
 
     function switchScreen(name) {
@@ -436,12 +448,15 @@
         currentItem: null,
         animationId: null,
         countdownId: null,
-        currentY: -100,
-        startTime: null
+        currentY: -100
       };
 
-      playArea.innerHTML = '<div id="feedback"></div>';
-      window.feedbackEl = document.getElementById("feedback");
+      playArea.innerHTML = `
+        <div id="feedback"></div>
+        <div id="choices"></div>
+      `;
+      feedbackEl = document.getElementById("feedback");
+      window.choicesEl = document.getElementById("choices");
       updateHUD();
     }
 
@@ -452,15 +467,26 @@
     }
 
     function renderChoices(correctItem) {
-      choicesEl.innerHTML = "";
+      const currentChoicesEl = document.getElementById("choices");
+      currentChoicesEl.innerHTML = "";
       const choices = pickChoices(correctItem);
 
       choices.forEach(choice => {
         const btn = document.createElement("button");
         btn.className = "choice-btn";
-        btn.textContent = choice.word;
         btn.onclick = () => handleChoice(choice);
-        choicesEl.appendChild(btn);
+
+        const wordEl = document.createElement("div");
+        wordEl.className = "choice-word";
+        wordEl.textContent = choice.word;
+
+        const pinyinEl = document.createElement("div");
+        pinyinEl.className = "choice-pinyin";
+        pinyinEl.textContent = choice.pinyin;
+
+        btn.appendChild(wordEl);
+        btn.appendChild(pinyinEl);
+        currentChoicesEl.appendChild(btn);
       });
     }
 
@@ -502,7 +528,7 @@
         gameState.currentY += (pxPerSecond * delta) / 1000;
         el.style.top = gameState.currentY + "px";
 
-        const bottomLimit = playArea.clientHeight - 120;
+        const bottomLimit = playArea.clientHeight - 180;
 
         if (gameState.currentY >= bottomLimit) {
           endGame();
@@ -531,7 +557,7 @@
         gameState.score += 10;
         gameState.speed += 0.15;
         updateHUD();
-        showFeedback("✅ +10", "good");
+        showFeedback("＋10", "good");
         speakWord(gameState.currentItem.word);
         clearCurrentItem();
         spawnItem();
@@ -539,7 +565,7 @@
         gameState.score = Math.max(0, gameState.score - 5);
         gameState.timeLeft = Math.max(0, gameState.timeLeft - 10);
         updateHUD();
-        showFeedback("❌ -5分\n-10秒", "bad");
+        showFeedback("－5分\n－10秒", "bad");
         if (gameState.timeLeft <= 0) {
           endGame();
         }
@@ -601,7 +627,7 @@
       const ranking = getRanking();
 
       if (!ranking.length) {
-        targetEl.innerHTML = `<p class="small-note">還沒有紀錄，快來挑戰第一名！</p>`;
+        targetEl.innerHTML = `<p class="small-note">目前還沒有紀錄。</p>`;
         return;
       }
 
@@ -624,7 +650,6 @@
     }
 
     document.getElementById("start-btn").addEventListener("click", startGame);
-
     document.getElementById("retry-btn").addEventListener("click", startGame);
 
     document.getElementById("back-menu-btn").addEventListener("click", () => {
@@ -645,10 +670,10 @@
       saveRanking(name, gameState.score);
       renderRanking(rankingListEl);
       playerNameInput.value = "";
-      showFeedbackOnResult("已保存到排行榜");
+      showResultMessage("已儲存到排行榜");
     });
 
-    function showFeedbackOnResult(text) {
+    function showResultMessage(text) {
       const note = document.createElement("div");
       note.textContent = text;
       note.style.marginTop = "12px";
